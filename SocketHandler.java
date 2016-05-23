@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,16 +16,29 @@ import java.util.logging.Logger;
  */
 public class SocketHandler {
     
-    private final Socket socket;
+    private Socket socket;
+    private InetAddress inetAddress;
+    private final int port;
     private ObjectOutputStream objectOutputStream;
     private ObjectInputStream objectInputStream;
     
-    public SocketHandler(Socket socket) {
+    public SocketHandler(String address, int port) {
         
-        this.socket = socket;
+        try {
+            this.inetAddress = InetAddress.getByName(address);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        this.port = port;
     }
     
     public boolean init() {
+        
+        try {
+            this.socket = new Socket(this.inetAddress, this.port);
+        } catch (IOException ex) {
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         try {
             
