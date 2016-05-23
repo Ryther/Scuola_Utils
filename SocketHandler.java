@@ -1,11 +1,10 @@
 package utils;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,11 +15,15 @@ import java.util.logging.Logger;
  */
 public class SocketHandler {
     
+    public enum Type {
+        CLIENT, SERVER
+    }
+    
+    private Type type;
     private Socket socket;
+    private ServerSocket serverSocket;
     private InetAddress inetAddress;
     private final int port;
-    private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
     
     public SocketHandler(String address, int port) {
         
@@ -30,9 +33,6 @@ public class SocketHandler {
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
         this.port = port;
-    }
-    
-    public boolean init() {
         
         try {
             this.socket = new Socket(this.inetAddress, this.port);
@@ -40,46 +40,68 @@ public class SocketHandler {
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        try {
-            
-            objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
-            objectOutputStream.flush();
-        } catch (IOException ex) { 
-            
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[Socket non inizializzato]", ex);
-            return false;
-        }
+        this.type = Type.CLIENT;
+    }
+    
+    public SocketHandler(int port) {
+        
+        this.port = port;
         
         try {
+            this.serverSocket = new ServerSocket(this.port);
+        } catch (IOException ex) {
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        this.type = Type.SERVER;
+    }
+
+    public Socket getSocket() {
+        
+        return socket;
+    }
+    
+    public boolean acceptTimeout(int time) {
+        
+        try {
+            this.serverSocket.setSoTimeout(time);
+        } catch (SocketException ex) {
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[SocketHandler deve essere di tipo server]");
+            return false;
+        }
+        return true;
+    }
+    
+    public boolean accept() {
+        
+        if (this.type.equals(Type.SERVER)) {
             
-            objectInputStream = new ObjectInputStream(this.socket.getInputStream());
-        } catch (IOException ex) { 
+            try {
+                this.socket = this.serverSocket.accept();
+            } catch (IOException ex) {
+                Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+                return false;
+            }
+        } else {
             
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[Socket non inizializzato]", ex);
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[SocketHandler deve essere di tipo server]");
             return false;
         }
         
         return true;
     }
     
-    public <T extends Serializable> void pushToStream(T target) {
+    public boolean accept(int time) {
         
-        try {
-            this.objectOutputStream.writeObject(target);
-        } catch (IOException ex) {
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+        if (!this.acceptTimeout(time)) {
+            return false;
         }
-    }
-    
-    public Object pullFromStream() {        
-        try {
-            return this.objectInputStream.readObject();
-        } catch (IOException ex) {
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
+        
+        if (this.accept()) {
+            this.acceptTimeout(0);
+            return true;
+        } else {
+            return false;
         }
     }
 }
