@@ -25,13 +25,9 @@ public class SocketHandler {
     private InetAddress inetAddress;
     private final int port;
     
-    public SocketHandler(String address, int port) {
+    public SocketHandler(InetAddress inetAddress, int port) {
         
-        try {
-            this.inetAddress = InetAddress.getByName(address);
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        this.inetAddress = inetAddress;
         this.port = port;
         
         try {
