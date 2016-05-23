@@ -2,7 +2,7 @@ package utils;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 public class ChatMessage implements Serializable {
     
     private String username;
-    private LocalDate date;
+    private LocalDateTime dateTime;
     private String message;
 
     public ChatMessage(String username) {
@@ -27,13 +27,13 @@ public class ChatMessage implements Serializable {
 
     public void setDate() {
         
-        this.date = LocalDate.now();
+        this.dateTime = LocalDateTime.now();
     }
 
     public String getDate() {
         
         try {
-            return CalendarUtils.dateToString(this.date, Consts.dateFormat);
+            return CalendarUtils.dateToString(this.dateTime, Consts.dateFormat);
         } catch (ParseException ex) {
             Logger.getLogger(ChatMessage.class.getName()).log(Level.SEVERE, null, ex);
             return "[ERR] DateError";
