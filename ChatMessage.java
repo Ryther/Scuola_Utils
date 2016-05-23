@@ -25,7 +25,7 @@ public class ChatMessage implements Serializable {
         return username;
     }
 
-    public void setDate(LocalDate date) {
+    public void setDate() {
         
         this.date = LocalDate.now();
     }
