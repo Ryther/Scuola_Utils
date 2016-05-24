@@ -18,7 +18,7 @@ public class CalendarUtils {
     
     public static final int FIRST_WEEK_DAY = Calendar.MONDAY;
     
-    public static <T extends ChronoLocalDateTime> int getDateDay(T date) {
+    public static <T extends ChronoLocalDateTime<?>> int getDateDay(T date) {
         
         return date.get(ChronoField.DAY_OF_WEEK);
     }
@@ -28,7 +28,7 @@ public class CalendarUtils {
         return CalendarUtils.stringToDate(date).getDayOfWeek().getValue();
     }
     
-    public static <T extends ChronoLocalDateTime> int getDateWeek(T date) {
+    public static <T extends ChronoLocalDateTime<?>> int getDateWeek(T date) {
         
         TemporalField week = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear(); 
         return date.get(week);
@@ -40,7 +40,7 @@ public class CalendarUtils {
         return CalendarUtils.stringToDate(date).get(week);
     }
     
-    public static <T extends ChronoLocalDateTime> int getDateYear(T date) {
+    public static <T extends ChronoLocalDateTime<?>> int getDateYear(T date) {
 
         return date.get(ChronoField.YEAR);
     }
@@ -62,19 +62,19 @@ public class CalendarUtils {
         return LocalDate.parse(s, formatter);
     }
     
-    public static <T extends ChronoLocalDateTime> String dateToString(T data) throws ParseException {
+    public static <T extends ChronoLocalDateTime<?>> String dateToString(T data) throws ParseException {
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/y");
         return String.valueOf(data.format(formatter));
     }
     
-    public static <T extends ChronoLocalDateTime> String dateToString(T data, String format) throws ParseException {
+    public static <T extends ChronoLocalDateTime<?>> String dateToString(T data, String format) throws ParseException {
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return String.valueOf(data.format(formatter));
     }
     
-    public static <T extends ChronoLocalDateTime> boolean equals(T data1, T data2) throws ParseException {
+    public static <T extends ChronoLocalDateTime<?>> boolean equals(T data1, T data2) throws ParseException {
         
         return CalendarUtils.dateToString(data1).equals(CalendarUtils.dateToString(data2));
     }
