@@ -51,6 +51,7 @@ public class StreamHandler {
         
         try {
             this.objectOutputStream.writeObject(target);
+            this.objectOutputStream.flush();
         } catch (IOException ex) {
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -66,5 +67,23 @@ public class StreamHandler {
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+    
+    public boolean closeStream() {
+        
+        try {
+            objectOutputStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(StreamHandler.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        try {
+            objectInputStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(StreamHandler.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        
+        return true;
     }
 }

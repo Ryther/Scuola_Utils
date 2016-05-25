@@ -99,4 +99,16 @@ public class SocketHandler {
             return false;
         }
     }
+    
+    public boolean closeSocket(){
+        
+        try {
+            socket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+        
+        return true;
+    }
 }
