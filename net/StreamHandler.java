@@ -27,8 +27,8 @@ public class StreamHandler {
         
         try {
             
-            objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
-            objectOutputStream.flush();
+            this.objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
+            this.objectOutputStream.flush();
         } catch (IOException ex) { 
             
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[Socket non inizializzato]", ex);
@@ -37,7 +37,7 @@ public class StreamHandler {
         
         try {
             
-            objectInputStream = new ObjectInputStream(this.socket.getInputStream());
+            this.objectInputStream = new ObjectInputStream(this.socket.getInputStream());
         } catch (IOException ex) { 
             
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, "[Socket non inizializzato]", ex);
@@ -52,6 +52,7 @@ public class StreamHandler {
         try {
             this.objectOutputStream.writeObject(target);
             this.objectOutputStream.flush();
+            this.objectOutputStream.reset();
         } catch (IOException ex) {
             Logger.getLogger(SocketHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -72,7 +73,7 @@ public class StreamHandler {
     public boolean closeStream() {
         
         try {
-            objectOutputStream.close();
+            this.objectOutputStream.close();
         } catch (IOException ex) {
             Logger.getLogger(StreamHandler.class.getName()).log(Level.SEVERE, null, ex);
             return false;
