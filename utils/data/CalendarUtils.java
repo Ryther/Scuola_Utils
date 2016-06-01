@@ -2,9 +2,12 @@ package utils.data;
 
 import java.text.ParseException;
 import java.time.LocalDate;
+import static java.time.LocalDate.parse;
+import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
+import java.time.temporal.Temporal;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.Calendar;
@@ -56,10 +59,18 @@ public class CalendarUtils {
         return LocalDate.parse(s, formatter);
     }
     
-    public static LocalDate stringToDate(String s, String format) throws ParseException {
+    public static <T extends Temporal> T stringToDate(String s, String format) throws ParseException {
         
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return LocalDate.parse(s, formatter);
+        T formattedDate = null;
+        if (format.contains("s") || format.contains("k") || format.contains("m")) {
+            
+            formattedDate = (T) LocalDateTime.parse(s, formatter);
+        } else {
+            
+            formattedDate = (T) LocalDate.parse(s, formatter);
+        }
+        return formattedDate;
     }
     
     public static <T extends ChronoLocalDateTime<?>> String dateToString(T data) throws ParseException {
