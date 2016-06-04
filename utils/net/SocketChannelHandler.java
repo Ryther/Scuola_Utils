@@ -31,6 +31,16 @@ public class SocketChannelHandler {
     private ServerSocketChannel serverSocketChannel;
     private InetSocketAddress inetSocketAddress;
     
+    public SocketChannelHandler(SocketChannel socketChannel) {
+        
+        this.socketChannel = socketChannel;
+        try {
+            this.inetSocketAddress = (InetSocketAddress) this.socketChannel.getLocalAddress();
+        } catch (IOException ex) {
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile ottenere IP del client", ex);
+        }
+    }
+    
     public SocketChannelHandler(InetAddress inetAddress, int port) {
         
         this.inetSocketAddress = new InetSocketAddress(inetAddress, port);
@@ -90,6 +100,10 @@ public class SocketChannelHandler {
         
         return this.socketChannel;
     }
+
+    public ServerSocketChannel getServerSocketChannel() {
+        return serverSocketChannel;
+    }
     
     public Set<SelectionKey> select() {
         
@@ -97,14 +111,14 @@ public class SocketChannelHandler {
             
             try {
                 this.selector.select();
+                return this.selector.selectedKeys();
             } catch (IOException ex) {
                 Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile trovare una chiave selezionabile", ex);
                 return null;
             }
-            return this.selector.selectedKeys();
         } else {
             
-            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.CLIENT), verificare costruttore");
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.{0}), verificare costruttore", this.type);
             return null;
         }
     }
@@ -138,7 +152,7 @@ public class SocketChannelHandler {
         return true;
     }
         
-    public <T extends Serializable> void pushToChannel(T target) {
+    public void pushToChannel(Object target) {
         
         if (this.type.equals(Type.CLIENT)) {
             
@@ -153,11 +167,11 @@ public class SocketChannelHandler {
             buffer.clear();
         } else {
             
-            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.CLIENT), verificare costruttore");
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.{0}), verificare costruttore", this.type);
         }
     }
     
-    public <T extends Serializable> void pushToChannel(SelectionKey selectedKey, T target) {
+    public void pushToChannel(SelectionKey selectedKey, Object target) {
         
         if (this.type.equals(Type.SERVER)) {
         
@@ -173,15 +187,15 @@ public class SocketChannelHandler {
             buffer.clear();
         } else {
             
-            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.SERVER), verificare costruttore");
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.{0}), verificare costruttore", this.type);
         }
     }
     
-    public Object pullFromStream() {        
+    public Object pullFromChannel() {        
         
         if (this.type.equals(Type.CLIENT)) {
             
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
+            ByteBuffer buffer = ByteBuffer.allocate(2048);
 
             try {
                 this.socketChannel.read(buffer);
@@ -197,17 +211,17 @@ public class SocketChannelHandler {
             }
         } else {
             
-            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.CLIENT), verificare costruttore");
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.{0}), verificare costruttore", this.type);
             return null;
         }
     }
     
-    public Object pullFromStream(SelectionKey selectedKey) {        
+    public Object pullFromChannel(SelectionKey selectedKey) {        
         
-        if (this.type.equals(Type.CLIENT)) {
+        if (this.type.equals(Type.SERVER)) {
             
             SocketChannel tempSocketChannel = (SocketChannel) selectedKey.channel();
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
+            ByteBuffer buffer = ByteBuffer.allocate(2048);
 
             try {
                 tempSocketChannel.read(buffer);
@@ -223,8 +237,34 @@ public class SocketChannelHandler {
             }
         } else {
             
-            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.SERVER), verificare costruttore");
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Tipologia di Handler errata (Type.{0}), verificare costruttore", this.type);
             return null;
+        }
+    }
+    
+    public void close() {
+        
+        switch(this.type) {
+            case CLIENT:        
+                try {
+                    this.socketChannel.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile chiudere il SocketChannel", ex);
+                }
+                break;
+            case SERVER:
+                try {
+                    this.selector.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile chiudere il selector", ex);
+                }
+        
+                try {
+                    this.serverSocketChannel.close();
+                } catch (IOException ex) {
+                    Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile chiudere il ServerSocketChannel", ex);
+                }
+                break;
         }
     }
 }
