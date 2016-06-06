@@ -1,7 +1,6 @@
 package utils.net;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -171,6 +170,19 @@ public class SocketChannelHandler {
         }
     }
     
+    public static void pushToChannel(SocketChannel socketChannel, Object target) {
+        
+        ByteBuffer buffer = DataHandler.objectToByteBuffer(target);
+
+        try {
+            socketChannel.write(buffer);
+        } catch (IOException ex) {
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile scrivere sul SocketChannel", ex);
+        }
+
+        buffer.clear();
+    }
+    
     public void pushToChannel(SelectionKey selectedKey, Object target) {
         
         if (this.type.equals(Type.SERVER)) {
@@ -216,12 +228,30 @@ public class SocketChannelHandler {
         }
     }
     
-    public Object pullFromChannel(SelectionKey selectedKey) {        
+    public static Object pullFromChannel(SocketChannel socketChannel, int bufferDimension) {        
+            
+        ByteBuffer buffer = ByteBuffer.allocate(bufferDimension);
+
+        try {
+            socketChannel.read(buffer);
+        } catch (IOException ex) {
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "Impossibile leggere dal SocketChannel", ex);
+        }
+
+        try {
+            return DataHandler.byteBufferToObject(buffer);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(SocketChannelHandler.class.getName()).log(Level.SEVERE, "I dati ricevuti non fanno parte di un oggetto", ex);
+            return null;
+        }
+    }
+    
+    public Object pullFromChannel(SelectionKey selectedKey, int bufferDimension) {
         
         if (this.type.equals(Type.SERVER)) {
             
             SocketChannel tempSocketChannel = (SocketChannel) selectedKey.channel();
-            ByteBuffer buffer = ByteBuffer.allocate(2048);
+            ByteBuffer buffer = ByteBuffer.allocate(bufferDimension);
 
             try {
                 tempSocketChannel.read(buffer);
@@ -241,6 +271,7 @@ public class SocketChannelHandler {
             return null;
         }
     }
+    
     
     public void close() {
         
