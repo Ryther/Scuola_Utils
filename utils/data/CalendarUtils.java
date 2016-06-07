@@ -2,7 +2,6 @@ package utils.data;
 
 import java.text.ParseException;
 import java.time.LocalDate;
-import static java.time.LocalDate.parse;
 import java.time.LocalDateTime;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,16 +72,33 @@ public class CalendarUtils {
         return formattedDate;
     }
     
-    public static <T extends ChronoLocalDateTime<?>> String dateToString(T data) throws ParseException {
+    public static <T extends Temporal> String dateToString(T data) throws ParseException {
         
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/y");
-        return String.valueOf(data.format(formatter));
+        String result = null;
+        if (data instanceof LocalDate) {
+        
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/y");
+            result = String.valueOf(((LocalDate) data).format(formatter));
+        } else if (data instanceof LocalDateTime) {
+            
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/y kk.mm");
+            result = String.valueOf(((LocalDateTime) data).format(formatter));
+        }
+        return result;
     }
     
-    public static <T extends ChronoLocalDateTime<?>> String dateToString(T data, String format) throws ParseException {
+    public static <T extends Temporal> String dateToString(T data, String format) throws ParseException {
         
+        String result = null;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return String.valueOf(data.format(formatter));
+        if (data instanceof LocalDate) {
+            
+            result = String.valueOf(((LocalDate) data).format(formatter));
+        } else if (data instanceof LocalDateTime) {
+            
+            result = String.valueOf(((LocalDateTime) data).format(formatter));
+        }
+        return result;
     }
     
     public static <T extends ChronoLocalDateTime<?>> boolean equals(T data1, T data2) throws ParseException {
